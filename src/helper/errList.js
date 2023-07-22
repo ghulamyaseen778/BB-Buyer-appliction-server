@@ -3,7 +3,9 @@ const errList = {
     2:"Minimum password length is 8",
     3:"minimum Name length is 3",
     4:"Enter correct email or password",
-    5:"Server Error try again"
+    5:"Server Error try again",
+    6:"UserName is already exists",
+    7:"Enter correct username or password"
 }
 
 export default errList

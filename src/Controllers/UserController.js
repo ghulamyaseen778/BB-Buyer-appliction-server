@@ -3,10 +3,17 @@ import User from "../Models/UserSchema.js";
 import { errHandler, responseHandler } from "../helper/response.js";
 
 const RegisterdUser = async (req, res) => {
-  let { Name, email, password, profilePhoto } = req.body;
+  let { Name, email, password, userName, phoneNumber } = req.body;
+  let profilePhoto = "https://placehold.co/100x100?text=";
 
   if (User && (await User.findOne({ email }))) {
     errHandler(res, 1, 403);
+    return;
+  } else if (
+    User &&
+    (await User.findOne({ userName: userName.split(" ").join("") }))
+  ) {
+    errHandler(res, 6, 403);
     return;
   } else if (password?.trim().length < 8) {
     errHandler(res, 2, 403);
@@ -27,16 +34,41 @@ const RegisterdUser = async (req, res) => {
 
   User.create({
     Name,
+    userName: userName.split(" ").join(""),
     email,
+    phoneNumber,
     password,
     profilePhoto: profilePhoto + profileName,
   })
     .then((data) => {
-      let { name, email, password, profilePhoto, _id, createdAt,token } = data;
-
-      responseHandler(res, {
-        name,
+      let {
+        userName,
+        Name,
         email,
+        phoneNumber,
+        password,
+        profilePhoto,
+        _id,
+        createdAt,
+      } = data;
+      let token = jsonwebtoken.sign(
+        {
+          userName,
+          Name,
+          email,
+          phoneNumber,
+          password,
+          profilePhoto,
+          _id,
+          createdAt,
+        },
+        process.env.SECRET_KEY
+      );
+      responseHandler(res, {
+        userName,
+        Name,
+        email,
+        phoneNumber,
         password,
         profilePhoto,
         _id,
@@ -50,24 +82,161 @@ const RegisterdUser = async (req, res) => {
 };
 
 const LoginUser = (req, res) => {
-  let { email, password } = req.body;
+  console.log(req.headers.authorization);
+  let { email, password, userName } = req.body;
   if (password.trim().length < 8) {
     errHandler(res, 2, 403);
     return;
   }
-  User.findOne({ email })
+  if (email) {
+    User.findOne({ email, password })
+      .then((data) => {
+        let {
+          userName,
+          Name,
+          email,
+          phoneNumber,
+          password,
+          profilePhoto,
+          _id,
+          createdAt,
+        } = data;
+        let token = jsonwebtoken.sign(
+          {
+            userName,
+            Name,
+            email,
+            phoneNumber,
+            password,
+            profilePhoto,
+            _id,
+            createdAt,
+          },
+          process.env.SECRET_KEY
+        );
+
+        responseHandler(res, {
+          userName,
+          Name,
+          email,
+          phoneNumber,
+          password,
+          profilePhoto,
+          _id,
+          createdAt,
+          token,
+        });
+      })
+      .catch((err) => {
+        errHandler(res, 4, 409);
+      });
+  }
+  if (userName) {
+    User.findOne({ userName: userName.split(" ").join(""), password })
+      .then((data) => {
+        let {
+          userName,
+          Name,
+          email,
+          phoneNumber,
+          password,
+          profilePhoto,
+          _id,
+          createdAt,
+        } = data;
+        let token = jsonwebtoken.sign(
+          {
+            userName,
+            Name,
+            email,
+            phoneNumber,
+            password,
+            profilePhoto,
+            _id,
+            createdAt,
+          },
+          process.env.SECRET_KEY
+        );
+        responseHandler(res, {
+          userName,
+          Name,
+          email,
+          phoneNumber,
+          password,
+          profilePhoto,
+          _id,
+          createdAt,
+          token,
+        });
+      })
+      .catch((err) => {
+        errHandler(res, 7, 409);
+      });
+  }
+};
+
+const ProfileData = (req, res) => {
+  const { userName, Name, email, phoneNumber, profilePhoto, _id, createdAt } =
+    req.user;
+  responseHandler(res, {
+    userName,
+    Name,
+    email,
+    phoneNumber,
+    profilePhoto,
+    _id,
+    createdAt,
+  });
+};
+
+const ProfileUpdate = (req, res) => {
+  let body = req.body;
+  const { _id } = req.user;
+  if (!body.profilePhoto) {
+    if (body.Name) {
+      let profileName = body.Name.split(" ");
+      if (profileName.length >= 2) {
+        profileName = [profileName[0][0], profileName[1][0]]
+          .join("")
+          .toLocaleUpperCase();
+      } else {
+        profileName = profileName[0][0].toLocaleUpperCase();
+      }
+      console.log(profileName)
+      body.profilePhoto= `https://placehold.co/100x100?text=${profileName}`;
+    }
+  }
+  User.findByIdAndUpdate(_id, body, { new: true })
     .then((data) => {
-      let { name, email, password, profilePhoto, _id, createdAt } = data;
-      let token = jsonwebtoken.sign(
-        { name, email, password, profilePhoto, _id, createdAt },
-        process.env.SECRET_KEY
-      );
-      responseHandler(res, {
-        name,
+      let {
+        userName,
+        Name,
         email,
+        phoneNumber,
         password,
         profilePhoto,
         _id,
+        createdAt,
+      } = data;
+      let token = jsonwebtoken.sign(
+        {
+          userName,
+          Name,
+          email,
+          phoneNumber,
+          password,
+          profilePhoto,
+          _id,
+          createdAt,
+        },
+        process.env.SECRET_KEY
+      );
+      responseHandler(res, {
+        userName,
+        Name,
+        email,
+        phoneNumber,
+        profilePhoto,
         createdAt,
         token,
       });
@@ -77,4 +246,4 @@ const LoginUser = (req, res) => {
     });
 };
 
-export { RegisterdUser, LoginUser };
+export { RegisterdUser, LoginUser, ProfileData, ProfileUpdate };
