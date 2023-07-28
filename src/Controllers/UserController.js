@@ -5,6 +5,44 @@ import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { Storage } from "../Config/firebase.config.js";
 import asyncHandler from "express-async-handler";
 
+const tokenGenrater = (dataObj) => {
+  let {
+    userName,
+    Name,
+    email,
+    phoneNumber,
+    password,
+    profilePhoto,
+    _id,
+    createdAt,
+  } = dataObj;
+  let token = jsonwebtoken.sign(
+    {
+      userName,
+      Name,
+      email,
+      phoneNumber,
+      password,
+      profilePhoto,
+      _id,
+      createdAt,
+    },
+    process.env.SECRET_KEY
+  );
+
+  return {
+    userName,
+    Name,
+    email,
+    phoneNumber,
+    password,
+    profilePhoto,
+    _id,
+    createdAt,
+    token,
+  };
+};
+
 const RegisterdUser = async (req, res) => {
   let { Name, email, password, userName, phoneNumber } = req.body;
   let profilePhoto = "https://placehold.co/100x100?text=";
@@ -44,40 +82,8 @@ const RegisterdUser = async (req, res) => {
     profilePhoto: profilePhoto + profileName,
   })
     .then((data) => {
-      let {
-        userName,
-        Name,
-        email,
-        phoneNumber,
-        password,
-        profilePhoto,
-        _id,
-        createdAt,
-      } = data;
-      let token = jsonwebtoken.sign(
-        {
-          userName,
-          Name,
-          email,
-          phoneNumber,
-          password,
-          profilePhoto,
-          _id,
-          createdAt,
-        },
-        process.env.SECRET_KEY
-      );
-      responseHandler(res, {
-        userName,
-        Name,
-        email,
-        phoneNumber,
-        password,
-        profilePhoto,
-        _id,
-        createdAt,
-        token,
-      });
+      let dataObj = tokenGenrater(data);
+      responseHandler(res, dataObj);
     })
     .catch((err) => {
       errHandler(res, 5, 409);
@@ -94,41 +100,8 @@ const LoginUser = (req, res) => {
   if (email) {
     User.findOne({ email, password })
       .then((data) => {
-        let {
-          userName,
-          Name,
-          email,
-          phoneNumber,
-          password,
-          profilePhoto,
-          _id,
-          createdAt,
-        } = data;
-        let token = jsonwebtoken.sign(
-          {
-            userName,
-            Name,
-            email,
-            phoneNumber,
-            password,
-            profilePhoto,
-            _id,
-            createdAt,
-          },
-          process.env.SECRET_KEY
-        );
-
-        responseHandler(res, {
-          userName,
-          Name,
-          email,
-          phoneNumber,
-          password,
-          profilePhoto,
-          _id,
-          createdAt,
-          token,
-        });
+        let dataObj = tokenGenrater(data);
+        responseHandler(res, dataObj);
       })
       .catch((err) => {
         errHandler(res, 4, 409);
@@ -137,40 +110,8 @@ const LoginUser = (req, res) => {
   if (userName) {
     User.findOne({ userName: userName.split(" ").join(""), password })
       .then((data) => {
-        let {
-          userName,
-          Name,
-          email,
-          phoneNumber,
-          password,
-          profilePhoto,
-          _id,
-          createdAt,
-        } = data;
-        let token = jsonwebtoken.sign(
-          {
-            userName,
-            Name,
-            email,
-            phoneNumber,
-            password,
-            profilePhoto,
-            _id,
-            createdAt,
-          },
-          process.env.SECRET_KEY
-        );
-        responseHandler(res, {
-          userName,
-          Name,
-          email,
-          phoneNumber,
-          password,
-          profilePhoto,
-          _id,
-          createdAt,
-          token,
-        });
+        let dataObj = tokenGenrater(data);
+        responseHandler(res, dataObj);
       })
       .catch((err) => {
         errHandler(res, 7, 409);
@@ -179,14 +120,23 @@ const LoginUser = (req, res) => {
 };
 
 const ProfileData = (req, res) => {
-  const { userName, Name, email, phoneNumber, profilePhoto, _id, createdAt } =
-    req.user;
+  const {
+    userName,
+    Name,
+    email,
+    phoneNumber,
+    profilePhoto,
+    _id,
+    createdAt,
+    password,
+  } = req.user;
   responseHandler(res, {
     userName,
     Name,
     email,
     phoneNumber,
     profilePhoto,
+    password,
     _id,
     createdAt,
   });
@@ -196,6 +146,16 @@ const ProfileUpdate = asyncHandler(async (req, res) => {
   console.log(req.file);
   let body = req.body;
   const { _id } = req.user;
+  const ResponseSend = () => {
+    User.findByIdAndUpdate(_id, body, { new: true })
+      .then((data) => {
+        let dataObj = tokenGenrater(data);
+        responseHandler(res, dataObj);
+      })
+      .catch((err) => {
+        errHandler(res, 5, 409);
+      });
+  };
   if (req.file) {
     const metadata = {
       contentType: req.file.mimetype,
@@ -211,48 +171,9 @@ const ProfileUpdate = asyncHandler(async (req, res) => {
       (snap) => {
         console.log("success");
         getDownloadURL(storageRef).then((url) => {
-          User.findByIdAndUpdate(
-            _id,
-            { ...body, profilePhoto: url },
-            { new: true }
-          )
-            .then((data) => {
-              let {
-                userName,
-                Name,
-                email,
-                phoneNumber,
-                password,
-                profilePhoto,
-                _id,
-                createdAt,
-              } = data;
-              let token = jsonwebtoken.sign(
-                {
-                  userName,
-                  Name,
-                  email,
-                  phoneNumber,
-                  password,
-                  profilePhoto,
-                  _id,
-                  createdAt,
-                },
-                process.env.SECRET_KEY
-              );
-              responseHandler(res, {
-                userName,
-                Name,
-                email,
-                phoneNumber,
-                profilePhoto,
-                createdAt,
-                token,
-              });
-            })
-            .catch((err) => {
-              errHandler(res, 5, 409);
-            });
+          body.profilePhoto = url;
+          console.log(url, "url");
+          ResponseSend();
         });
       }
     );
@@ -266,45 +187,10 @@ const ProfileUpdate = asyncHandler(async (req, res) => {
       profileName = profileName[0][0].toLocaleUpperCase();
     }
     console.log(profileName);
-    let url = `https://placehold.co/100x100?text=${profileName}`;
-    User.findByIdAndUpdate(_id, { ...body, profilePhoto: url }, { new: true })
-      .then((data) => {
-        let {
-          userName,
-          Name,
-          email,
-          phoneNumber,
-          password,
-          profilePhoto,
-          _id,
-          createdAt,
-        } = data;
-        let token = jsonwebtoken.sign(
-          {
-            userName,
-            Name,
-            email,
-            phoneNumber,
-            password,
-            profilePhoto,
-            _id,
-            createdAt,
-          },
-          process.env.SECRET_KEY
-        );
-        responseHandler(res, {
-          userName,
-          Name,
-          email,
-          phoneNumber,
-          profilePhoto,
-          createdAt,
-          token,
-        });
-      })
-      .catch((err) => {
-        errHandler(res, 5, 409);
-      });
+    body.profilePhoto = `https://placehold.co/100x100?text=${profileName}`;
+    ResponseSend();
+  } else {
+    ResponseSend();
   }
 });
 
