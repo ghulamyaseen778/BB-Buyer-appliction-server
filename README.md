@@ -4,7 +4,7 @@
 
 ```JavaScript
 {
-    "product":{
+    product:{
         "title": "test product",
         "description": "test product description",
         "price": "9000",
