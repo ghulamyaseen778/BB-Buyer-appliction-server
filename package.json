@@ -1,5 +1,5 @@
 {
-  "name": "templeteserver",
+  "name": "BB Buyer server",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,7 +10,7 @@
     "dev": "nodemon src/server.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Ghulam yaseen",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
