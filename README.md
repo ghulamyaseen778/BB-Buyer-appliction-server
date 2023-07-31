@@ -1,6 +1,6 @@
 # BB-Buyer-appliction-server
 
-##Product Upload Object
+## Product Upload Object
 
 ```JavaScript
 {
