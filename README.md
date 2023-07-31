@@ -5,20 +5,20 @@
 ```JavaScript
 {
     product:{
-        "title": "test product",
-        "description": "test product description",
-        "price": "9000",
-        "rating": "0.0",
-        "category": "pants"
+        title: "test product",
+        description: "test product description",
+        price: "9000",
+        rating: "0.0",
+        category: "pants"
     },
-    "productDetails": {
-        "styleCode": "UIOPH",
-        "colors": [
+    productDetails: {
+        styleCode: "UIOPH",
+        colors: [
             "blue",
             "red"
         ],
-        "sizes": ["S","M"],
-        "pattern": "printed"
+        sizes: ["S","M"],
+        pattern: "printed"
     }
 }
 
