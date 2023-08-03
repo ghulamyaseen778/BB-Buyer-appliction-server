@@ -5,7 +5,10 @@ const errList = {
     4:"Enter correct email or password",
     5:"Server Error try again",
     6:"UserName is already exists",
-    7:"Enter correct username or password"
+    7:"Enter correct username or password",
+    8:"All fileds are required",
+    9:"ReUpload your images",
+    10:"Server making trouble"
 }
 
 export default errList
