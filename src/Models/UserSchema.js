@@ -9,7 +9,7 @@ const UserSchema = mongoose.Schema(
     userName: {
       type: String,
       required: true,
-      trim:true
+      trim: true,
     },
     email: {
       type: String,
@@ -32,26 +32,37 @@ const UserSchema = mongoose.Schema(
       default: false,
       required: true,
     },
-    verified:{
-      type:Boolean,
-      default:false,
+    verified: {
+      type: Boolean,
+      default: false,
       required: true,
-    }
+    },
   },
   {
     timestamps: true,
   }
 );
 
-const otpVerification = mongoose.Schema({
-  UserId:{
-    type:String,
-    required:true
+const otpVerificationSchema = mongoose.Schema(
+  {
+    UserId: {
+      type: String,
+      required: true,
+    },
+    otp:{
+      type:String,
+      required:true
+    },
+    expireAt: {
+      type: String,
+      default: Date.now() + 3600,
+    },
   },
-  expireAt:{
-  
+  {
+    timestamps: true,
   }
-})
+);
 
 const User = mongoose.model("User", UserSchema);
-export default User;
+const otpVerification = mongoose.model("otpVerification", otpVerificationSchema);
+export {User,otpVerification};

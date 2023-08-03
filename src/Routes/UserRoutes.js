@@ -4,6 +4,7 @@ import {
   ProfileData,
   ProfileUpdate,
   RegisterdUser,
+  otpVerify,
 } from "../Controllers/UserController.js";
 import { checkToken, upload } from "../middleware/index.js";
 import { getProduct, productUpload } from "../Controllers/ProductController.js";
@@ -12,6 +13,7 @@ const route = express.Router();
 
 route.route("/registerd").post(RegisterdUser);
 route.route("/login").post(LoginUser);
+route.route("/verify").post(checkToken,otpVerify);
 route
   .route("/profile")
   .get(checkToken, ProfileData)
