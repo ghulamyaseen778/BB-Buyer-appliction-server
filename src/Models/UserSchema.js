@@ -30,12 +30,28 @@ const UserSchema = mongoose.Schema(
     isAdmin: {
       type: Boolean,
       default: false,
+      required: true,
     },
+    verified:{
+      type:Boolean,
+      default:false,
+      required: true,
+    }
   },
   {
     timestamps: true,
   }
 );
+
+const otpVerification = mongoose.Schema({
+  UserId:{
+    type:String,
+    required:true
+  },
+  expireAt:{
+  
+  }
+})
 
 const User = mongoose.model("User", UserSchema);
 export default User;

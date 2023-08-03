@@ -6,8 +6,12 @@ import cors from "cors"
 import connectDB from "./Config/db.js";
 import route from "./Routes/UserRoutes.js";
 
-const PORT = process.env.PORT || 5000
 dotenv.config()
+
+
+
+const PORT = process.env.PORT || 5000
+
 
 connectDB()
 
@@ -22,6 +26,7 @@ if (process.env.ENV === 'development') {
 
 app.get("/",(req,res)=>{
     res.send(`${process.env.APP_NAME||"Test APP"} api is working on ${process.env.ENV}.....`)
+    
 })
 
 app.listen(PORT,()=>{
