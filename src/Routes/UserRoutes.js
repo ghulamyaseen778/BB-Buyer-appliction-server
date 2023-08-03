@@ -6,7 +6,7 @@ import {
   RegisterdUser,
 } from "../Controllers/UserController.js";
 import { checkToken, upload } from "../middleware/index.js";
-import { productUpload } from "../Controllers/ProductController.js";
+import { getProduct, productUpload } from "../Controllers/ProductController.js";
 
 const route = express.Router();
 
@@ -18,6 +18,9 @@ route
   .put(checkToken, upload.single("image"), ProfileUpdate);
 //products routers
 
-route.route("/product").post(checkToken,upload.any("images"),productUpload)
+route
+  .route("/product")
+  .post(checkToken, upload.any("images"), productUpload)
+  .get(checkToken,getProduct);
 
 export default route;

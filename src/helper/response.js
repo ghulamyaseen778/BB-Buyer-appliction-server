@@ -10,7 +10,7 @@ const errHandler = (res,err,status) =>{
     if(typeof err=="string"){
         res.json({err})
     }else{
-        res.json({err:errList[err]})
+        res.json({err:errList[err]+"!"})
         
     }
 }
