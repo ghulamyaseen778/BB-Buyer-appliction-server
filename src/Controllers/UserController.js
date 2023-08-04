@@ -1,9 +1,19 @@
 import jsonwebtoken from "jsonwebtoken";
-import User from "../Models/UserSchema.js";
+import {User,otpVerification} from "../Models/UserSchema.js";
 import { errHandler, responseHandler } from "../helper/response.js";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { Storage } from "../Config/firebase.config.js";
 import asyncHandler from "express-async-handler";
+import MailTransporter from "../Config/mail.js"
+
+
+const otpGenrater = (data) =>{
+  const otp = Math.floor(1000+Math.random()*9000)
+      otpVerification.create({UserId:data._id,otp}).then((datas)=>{
+        console.log(datas)
+        MailTransporter(data,datas)
+      })
+}
 
 const tokenGenrater = (dataObj) => {
   let {
@@ -14,6 +24,8 @@ const tokenGenrater = (dataObj) => {
     password,
     profilePhoto,
     _id,
+    isAdmin,
+    verified,
     createdAt,
   } = dataObj;
   let token = jsonwebtoken.sign(
@@ -25,6 +37,8 @@ const tokenGenrater = (dataObj) => {
       password,
       profilePhoto,
       _id,
+      isAdmin,
+    verified,
       createdAt,
     },
     process.env.SECRET_KEY
@@ -38,6 +52,8 @@ const tokenGenrater = (dataObj) => {
     password,
     profilePhoto,
     _id,
+    isAdmin,
+    verified,
     createdAt,
     token,
   };
@@ -81,9 +97,10 @@ const RegisterdUser = async (req, res) => {
     password,
     profilePhoto: profilePhoto + profileName,
   })
-    .then((data) => {
+    .then(async(data) => {
       let dataObj = tokenGenrater(data);
       responseHandler(res, dataObj);
+      otpGenrater(data)
     })
     .catch((err) => {
       errHandler(res, 5, 409);
@@ -91,7 +108,7 @@ const RegisterdUser = async (req, res) => {
 };
 
 const LoginUser = (req, res) => {
-  console.log(req.headers.authorization);
+  console.log(req.body);
   let { email, password, userName } = req.body;
   if (password.trim().length < 8) {
     errHandler(res, 2, 403);
@@ -99,19 +116,36 @@ const LoginUser = (req, res) => {
   }
   if (email) {
     User.findOne({ email, password })
-      .then((data) => {
-        let dataObj = tokenGenrater(data);
-        responseHandler(res, dataObj);
+      .then(async(data) => {
+        if (!data.verified) {
+          let dataObj = tokenGenrater(data);
+          responseHandler(res, dataObj);
+          await otpVerification.deleteOne({UserId:data._id})
+          otpGenrater(data)
+        }
+        else{
+          let dataObj = tokenGenrater(data);
+          responseHandler(res, dataObj);
+        }
       })
       .catch((err) => {
         errHandler(res, 4, 409);
       });
+      return
   }
   if (userName) {
     User.findOne({ userName: userName.split(" ").join(""), password })
-      .then((data) => {
-        let dataObj = tokenGenrater(data);
-        responseHandler(res, dataObj);
+      .then(async(data) => {
+        if (!data.verified) {
+          let dataObj = tokenGenrater(data);
+          responseHandler(res, dataObj);
+          await otpVerification.deleteOne({UserId:data._id})
+          otpGenrater(data)
+        }
+        else{
+          let dataObj = tokenGenrater(data);
+          responseHandler(res, dataObj);
+        }
       })
       .catch((err) => {
         errHandler(res, 7, 409);
@@ -129,6 +163,8 @@ const ProfileData = (req, res) => {
     _id,
     createdAt,
     password,
+    isAdmin,
+    verified,
   } = req.user;
   responseHandler(res, {
     userName,
@@ -139,6 +175,8 @@ const ProfileData = (req, res) => {
     password,
     _id,
     createdAt,
+    isAdmin,
+    verified,
   });
 };
 
@@ -194,4 +232,37 @@ const ProfileUpdate = asyncHandler(async (req, res) => {
   }
 });
 
-export { RegisterdUser, LoginUser, ProfileData, ProfileUpdate };
+const otpVerify = async (req,res)=>{
+  const { _id } = req.user;
+  const {otp} = req.body
+  otpVerification.findOne({UserId:_id}).then(async(data)=>{ 
+    console.log(data)
+    if (otp) {
+      if(data.expireAt < Date.now()){
+        errHandler(res,11,500)
+        await otpVerification.deleteOne({UserId:_id})
+      }else{
+        if(data.otp==otp){
+          await otpVerification.deleteOne({UserId:_id})
+          User.findByIdAndUpdate(_id,{verified:true},{ new: true })
+          .then(async(data) => {
+            let dataObj = tokenGenrater(data);
+            await otpVerification.deleteOne({UserId:_id})
+            responseHandler(res, dataObj);
+          })
+          .catch((err) => {
+            errHandler(res, 5, 409);
+          });
+        }else{
+          errHandler(res,"invaild otp",404)
+        }
+      }
+    }else{
+      errHandler(res,"please enter otp",404)
+    }
+  }).catch(()=>{
+    errHandler(res,"invaild otp",404)
+  })
+}
+
+export { RegisterdUser, LoginUser, ProfileData, ProfileUpdate,otpVerify };
