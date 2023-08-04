@@ -8,7 +8,8 @@ const errList = {
     7:"Enter correct username or password",
     8:"All fileds are required",
     9:"ReUpload your images",
-    10:"Server making trouble"
+    10:"Server making trouble",
+    11:"otp is expire"
 }
 
 export default errList

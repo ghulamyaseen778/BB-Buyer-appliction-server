@@ -54,8 +54,8 @@ const otpVerificationSchema = mongoose.Schema(
       required:true
     },
     expireAt: {
-      type: String,
-      default: Date.now() + 3600,
+      type: Date,
+      default: Date.now() + 3600000*+1,
     },
   },
   {
