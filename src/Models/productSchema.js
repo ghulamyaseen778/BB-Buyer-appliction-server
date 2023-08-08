@@ -74,6 +74,20 @@ const productSchema = mongoose.Schema(
       ref: "productDetail",
       required: true,
     },
+    productType:{
+      type:String,
+      required:true,
+      enum:["sell","bid"]
+    },
+    startTime:{
+      type:String,
+    },
+    endTime:{
+      type:String,
+    },
+    bids:{
+      type:Array,
+    }
   },
   {
     timestamps: true,
