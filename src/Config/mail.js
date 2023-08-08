@@ -33,7 +33,7 @@ const MailTransporter =  (data,datas) =>{
                         <div style="padding: 20px; background-color: rgb(255, 255, 255);">
                           <div style="color: rgb(0, 0, 0); text-align: left;">
                             <h1 style="margin: 1rem 0">Verification code</h1>
-                            <p style="padding-bottom: 16px">${data.Name} Thank you for choosing BB Buyer Brand. Use the following OTP to complete your Registration procedures. OTP is valid for 1 hour</p>
+                            <p style="padding-bottom: 16px">${data.Name} Thank you for choosing BB Buyer Brand. Use the following OTP to complete your Registration procedures. OTP is valid for 1 houryyyyyytyvtvgbbg</p>
                             <h2 style="background: #00466a;margin: 0 auto;width: max-content;padding: 0 10px;color: #fff;border-radius: 4px;">BB-${datas.otp}</h2>
                             <p style="padding-bottom: 16px">If you didn’t request this, you can ignore this email.</p>
                             <p style="padding-bottom: 16px">Thanks,<br>The BB Buyer team</p>

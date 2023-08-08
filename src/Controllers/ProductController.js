@@ -37,17 +37,19 @@ const productUpload = async (req, res) => {
     }
   }
   else{
-    errHandler(res,8,500)
+    errHandler(res,"images is required",500)
   }
 
   productDetail.create(productDetails).then((Details)=>{
     product.create({...body,uesrToken:_id,productDetailsId:Details._id,images:arr}).then((response)=>{
       responseHandler(res,{product:response,productDetails:Details})
-    }).catch(()=>{
+    }).catch((err)=>{
       errHandler(res,8,500)
+      console.log(err)
     })
-  }).catch(()=>{
+  }).catch((err)=>{
     errHandler(res,8,500)
+    console.log(err)
   })
 };
 
