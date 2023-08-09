@@ -55,12 +55,15 @@ const productUpload = async (req, res) => {
 
 
 const getProduct = (req,res)=>{
-  const {myProducts,id} = req.query
+  let {myProducts,id,page,limit} = req.query
   const {_id} = req.user;
+  page = Number(page||1)
+  limit= Number(limit||6)
+  const skip = (page-1)*limit
   console.log(_id)
   const obj = myProducts=="true"?{uesrToken:_id}:id?{_id:id}:{}
-  product.find(obj).then( async(response)=>{
-    responseHandler(res,response)
+  product.find(obj).skip(skip).limit(limit).then( async(response)=>{
+    responseHandler(res,{data:response,noOfHits:response.length})
   }).catch(()=>{
     errHandler(res,10,404)
   })
