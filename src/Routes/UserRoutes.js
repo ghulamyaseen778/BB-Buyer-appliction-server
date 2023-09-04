@@ -4,7 +4,10 @@ import {
   ProfileData,
   ProfileUpdate,
   RegisterdUser,
+  activeBrand,
+  getBrand,
   otpVerify,
+  updateBrand,
 } from "../Controllers/UserController.js";
 import { checkToken, upload } from "../middleware/index.js";
 import { getProduct, productUpload } from "../Controllers/ProductController.js";
@@ -13,7 +16,8 @@ const route = express.Router();
 
 route.route("/registerd").post(RegisterdUser);
 route.route("/login").post(LoginUser);
-route.route("/verify").post(checkToken,otpVerify);
+route.route("/verify").post(checkToken, otpVerify);
+route.route("/brand").post(checkToken, activeBrand).get(getBrand).put(updateBrand)
 route
   .route("/profile")
   .get(checkToken, ProfileData)
@@ -23,6 +27,6 @@ route
 route
   .route("/product")
   .post(checkToken, upload.any("images"), productUpload)
-  .get(checkToken,getProduct);
+  .get(checkToken, getProduct);
 
 export default route;

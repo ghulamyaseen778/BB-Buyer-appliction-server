@@ -1,19 +1,18 @@
 import jsonwebtoken from "jsonwebtoken";
-import {User,otpVerification} from "../Models/UserSchema.js";
+import { User, brand, otpVerification } from "../Models/UserSchema.js";
 import { errHandler, responseHandler } from "../helper/response.js";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { Storage } from "../Config/firebase.config.js";
 import asyncHandler from "express-async-handler";
-import MailTransporter from "../Config/mail.js"
+import MailTransporter from "../Config/mail.js";
 
-
-const otpGenrater = (data) =>{
-  const otp = Math.floor(1000+Math.random()*9000)
-      otpVerification.create({UserId:data._id,otp}).then((datas)=>{
-        console.log(datas)
-        MailTransporter(data,datas)
-      })
-}
+const otpGenrater = (data) => {
+  const otp = Math.floor(1000 + Math.random() * 9000);
+  otpVerification.create({ UserId: data._id, otp }).then((datas) => {
+    console.log(datas);
+    MailTransporter(data, datas);
+  });
+};
 
 const tokenGenrater = (dataObj) => {
   let {
@@ -38,7 +37,7 @@ const tokenGenrater = (dataObj) => {
       profilePhoto,
       _id,
       isAdmin,
-    verified,
+      verified,
       createdAt,
     },
     process.env.SECRET_KEY
@@ -57,6 +56,31 @@ const tokenGenrater = (dataObj) => {
     createdAt,
     token,
   };
+};
+
+const sendStars = (ratingArr) => {
+  console.log(ratingArr);
+  let rating = ratingArr;
+  let stars = [0, 0, 0, 0, 0];
+  let countOfStars = 0;
+  for (let i = 0; i < rating.length; i++) {
+    let element = rating[i].rating;
+    stars[element - 1] = stars[element - 1] + 1;
+    countOfStars += stars[element - 1] + 1;
+  }
+  console.log(stars);
+  let totalStars = [...stars].filter((e) => e != 0);
+  let countOfRating = 0;
+  for (let i = 0; i < totalStars.length; i++) {
+    let element = totalStars[i];
+    totalStars[i] = totalStars[i] * (i + 1);
+    countOfRating += totalStars[i] * (i + 1);
+  }
+  console.log(countOfRating);
+  console.log(totalStars);
+  console.log(countOfStars, "countOfStars");
+  console.log(countOfRating / countOfStars, "jj");
+  return Number((countOfRating / countOfStars).toFixed(1));
 };
 
 const RegisterdUser = async (req, res) => {
@@ -97,10 +121,10 @@ const RegisterdUser = async (req, res) => {
     password,
     profilePhoto: profilePhoto + profileName,
   })
-    .then(async(data) => {
+    .then(async (data) => {
       let dataObj = tokenGenrater(data);
       responseHandler(res, dataObj);
-      otpGenrater(data)
+      otpGenrater(data);
     })
     .catch((err) => {
       errHandler(res, 5, 409);
@@ -116,14 +140,13 @@ const LoginUser = (req, res) => {
   }
   if (email) {
     User.findOne({ email, password })
-      .then(async(data) => {
+      .then(async (data) => {
         if (!data.verified) {
           let dataObj = tokenGenrater(data);
           responseHandler(res, dataObj);
-          await otpVerification.deleteOne({UserId:data._id})
-          otpGenrater(data)
-        }
-        else{
+          await otpVerification.deleteOne({ UserId: data._id });
+          otpGenrater(data);
+        } else {
           let dataObj = tokenGenrater(data);
           responseHandler(res, dataObj);
         }
@@ -131,18 +154,17 @@ const LoginUser = (req, res) => {
       .catch((err) => {
         errHandler(res, 4, 409);
       });
-      return
+    return;
   }
   if (userName) {
     User.findOne({ userName: userName.split(" ").join(""), password })
-      .then(async(data) => {
+      .then(async (data) => {
         if (!data.verified) {
           let dataObj = tokenGenrater(data);
           responseHandler(res, dataObj);
-          await otpVerification.deleteOne({UserId:data._id})
-          otpGenrater(data)
-        }
-        else{
+          await otpVerification.deleteOne({ UserId: data._id });
+          otpGenrater(data);
+        } else {
           let dataObj = tokenGenrater(data);
           responseHandler(res, dataObj);
         }
@@ -232,37 +254,94 @@ const ProfileUpdate = asyncHandler(async (req, res) => {
   }
 });
 
-const otpVerify = async (req,res)=>{
+const otpVerify = async (req, res) => {
   const { _id } = req.user;
-  const {otp} = req.body
-  otpVerification.findOne({UserId:_id}).then(async(data)=>{ 
-    console.log(data)
-    if (otp) {
-      if(data.expireAt < Date.now()){
-        errHandler(res,11,500)
-        await otpVerification.deleteOne({UserId:_id})
-      }else{
-        if(data.otp==otp){
-          await otpVerification.deleteOne({UserId:_id})
-          User.findByIdAndUpdate(_id,{verified:true},{ new: true })
-          .then(async(data) => {
-            let dataObj = tokenGenrater(data);
-            await otpVerification.deleteOne({UserId:_id})
-            responseHandler(res, dataObj);
-          })
-          .catch((err) => {
-            errHandler(res, 5, 409);
-          });
-        }else{
-          errHandler(res,"invaild otp",404)
+  const { otp } = req.body;
+  otpVerification
+    .findOne({ UserId: _id })
+    .then(async (data) => {
+      console.log(data);
+      if (otp) {
+        if (data.expireAt < Date.now()) {
+          errHandler(res, 11, 500);
+          await otpVerification.deleteOne({ UserId: _id });
+        } else {
+          if (data.otp == otp) {
+            await otpVerification.deleteOne({ UserId: _id });
+            User.findByIdAndUpdate(_id, { verified: true }, { new: true })
+              .then(async (data) => {
+                let dataObj = tokenGenrater(data);
+                await otpVerification.deleteOne({ UserId: _id });
+                responseHandler(res, dataObj);
+              })
+              .catch((err) => {
+                errHandler(res, 5, 409);
+              });
+          } else {
+            errHandler(res, "invaild otp", 404);
+          }
         }
+      } else {
+        errHandler(res, "please enter otp", 404);
       }
-    }else{
-      errHandler(res,"please enter otp",404)
-    }
-  }).catch(()=>{
-    errHandler(res,"invaild otp",404)
-  })
-}
+    })
+    .catch(() => {
+      errHandler(res, "invaild otp", 404);
+    });
+};
 
-export { RegisterdUser, LoginUser, ProfileData, ProfileUpdate,otpVerify };
+const activeBrand = (req, res) => {
+  const body = req.body;
+  const { _id } = req.user;
+  brand
+    .create({ UserId: _id, ...body })
+    .then((data) => {
+      responseHandler(res, data);
+    })
+    .catch(() => {
+      errHandler(res, "brand is not active", 500);
+    });
+};
+
+const getBrand = (req, res) => {
+  const { id } = req.query;
+  const obj = { _id: id } || {};
+  brand
+    .find(obj)
+    .then((data) => {
+      // const {rating} = {rating:[{id:"",rating:4},{id:"",rating:2},{id:"",rating:3},{id:"",rating:4},{id:"",rating:5}]} For Testing
+      const { rating } = data;
+      const stars = sendStars(rating);
+      console.log(stars);
+      responseHandler(res, { ...data, stars });
+    })
+    .catch((err) => {
+      console.log(err);
+      errHandler(res, "this brand is not found", 404);
+    });
+};
+
+const updateBrand = (req, res) => {
+  const body = req.body;
+  const { id } = req.query;
+
+  brand
+    .findByIdAndUpdate({ _id: id }, body, { new: true })
+    .then(async (data) => {
+      // const {rating} = {rating:[{id:"",rating:4},{id:"",rating:2},{id:"",rating:3},{id:"",rating:4},{id:"",rating:5}]} For Testing
+      const { rating } = data;
+      const stars = sendStars(rating);
+      responseHandler(res, { ...data, stars });
+    });
+};
+
+export {
+  RegisterdUser,
+  LoginUser,
+  ProfileData,
+  ProfileUpdate,
+  otpVerify,
+  activeBrand,
+  getBrand,
+  updateBrand,
+};

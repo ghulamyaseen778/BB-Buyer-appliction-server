@@ -23,3 +23,13 @@
 }
 
 ```
+
+## Push Data into Array
+
+```JavaScript
+
+{
+  "$push":{"rating":{"rating":3,"id":"dddddd"}}
+}
+
+```

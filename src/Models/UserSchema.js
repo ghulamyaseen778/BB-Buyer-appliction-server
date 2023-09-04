@@ -37,6 +37,11 @@ const UserSchema = mongoose.Schema(
       default: false,
       required: true,
     },
+    isBrandActive:{
+      type:Boolean,
+      default:false,
+      required: true,
+    }
   },
   {
     timestamps: true,
@@ -73,16 +78,24 @@ const brandSchema = mongoose.Schema(
       required:true
     },
     rating:{
-      type:Number,
-      default:0.0
+      type:[Object],
+      default:[]
     },
     orderCompletaion:{
-      type:String,
-      default:"0"
+      type:Number,
+      default:0
     },
     customerReviews:{
       type:Array,
       default:[]
+    },
+    isVerified:{
+      type:Boolean,
+      default:false
+    },
+    stars:{
+      type:Number,
+      default:0
     }
   },
   {
