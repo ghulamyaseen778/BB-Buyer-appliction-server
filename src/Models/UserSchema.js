@@ -37,6 +37,11 @@ const UserSchema = mongoose.Schema(
       default: false,
       required: true,
     },
+    isBrandActive:{
+      type:Boolean,
+      default:false,
+      required: true,
+    }
   },
   {
     timestamps: true,
@@ -62,7 +67,43 @@ const otpVerificationSchema = mongoose.Schema(
     timestamps: true,
   }
 );
+const brandSchema = mongoose.Schema(
+  {
+    UserId: {
+      type: String,
+      required: true,
+    },
+    brandName:{
+      type:String,
+      required:true
+    },
+    rating:{
+      type:[Object],
+      default:[]
+    },
+    orderCompletaion:{
+      type:Number,
+      default:0
+    },
+    customerReviews:{
+      type:Array,
+      default:[]
+    },
+    isVerified:{
+      type:Boolean,
+      default:false
+    },
+    stars:{
+      type:Number,
+      default:0
+    }
+  },
+  {
+    timestamps: true,
+  }
+);
 
 const User = mongoose.model("User", UserSchema);
 const otpVerification = mongoose.model("otpVerification", otpVerificationSchema);
-export {User,otpVerification};
+const brand = mongoose.model("brand", brandSchema);
+export {User,otpVerification,brand};
